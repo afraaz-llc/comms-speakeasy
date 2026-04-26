@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>comms</title>
+  <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+  <meta http-equiv="Pragma" content="no-cache">
+  <meta http-equiv="Expires" content="0">
+  <link rel="stylesheet" href="styles.css?v=17">
+</head>
+<body>
+  <main class="comms-app">
+
+    <section class="message-log" id="messageLog"></section>
+
+    <section class="compose">
+
+      <div class="paint-toolbar">
+        <div class="tool-group sizes">
+          <button class="size-btn"        data-size="2"><span style="height:2px"></span></button>
+          <button class="size-btn active" data-size="4"><span style="height:4px"></span></button>
+          <button class="size-btn"        data-size="8"><span style="height:8px"></span></button>
+        </div>
+        <div class="palette" id="palette"></div>
+        <button class="tool-btn" id="clearBtn" title="clear scribbles">🗑️</button>
+        <label class="name-label header-name">
+          <span class="name-label-text">you:</span>
+          <input type="text" id="username" maxlength="12" placeholder="anon" spellcheck="false">
+        </label>
+      </div>
+
+      <div class="compose-area">
+        <textarea id="messageInput" rows="3" spellcheck="false"></textarea>
+        <canvas id="composeCanvas"></canvas>
+        <button class="send-btn" id="sendBtn">
+          <span>send</span>
+          <span class="send-arrow">↗</span>
+        </button>
+      </div>
+
+    </section>
+
+  </main>
+
+  <script src="app.js?v=12"></script>
+</body>
+</html>
