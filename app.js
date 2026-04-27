@@ -458,6 +458,19 @@ messageInput .addEventListener('blur',  () => setTimeout(ensureFocus, 0));
 usernameInput.addEventListener('blur',  () => setTimeout(ensureFocus, 0));
 window       .addEventListener('focus', () => setTimeout(ensureFocus, 0));
 
+// Stop button taps from stealing focus. Without this, tapping any control
+// button (play, send, clear, color, size, scroll-to-bottom) on iOS blurs
+// the textarea, which dismisses the keyboard, which makes the app jerk
+// up and down as the visual viewport resizes — and then snaps back when
+// our blur handler re-focuses the textarea. preventDefault on mousedown
+// keeps focus on the textarea throughout the click.
+['mousedown', 'pointerdown'].forEach(type => {
+  document.addEventListener(type, (e) => {
+    const btn = e.target.closest('button');
+    if (btn) e.preventDefault();
+  });
+});
+
 setTimeout(ensureFocus, 80);
 sizeCanvas();
 
