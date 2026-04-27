@@ -5,9 +5,10 @@
 // massively lighter than PNGs, crisp at any size, serializes easily for P2P.
 
 // ESM imports (this script is loaded with type="module")
-// Trystero split into per-strategy packages — use @trystero-p2p/torrent
-// for BitTorrent-tracker-based signaling.
-import { joinRoom } from 'https://esm.sh/@trystero-p2p/torrent';
+// Nostr relays are real-time event streams — sub-second peer discovery and
+// fast reconnect after a tab refresh. Much smoother than BitTorrent
+// trackers (which only re-announce every 2 minutes).
+import { joinRoom } from 'https://esm.sh/@trystero-p2p/nostr';
 
 // ------- Config -------
 const COLORS = [
