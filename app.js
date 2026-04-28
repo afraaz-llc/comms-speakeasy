@@ -532,6 +532,73 @@ async function hashRoomKey(ip) {
 // send() checks this to broadcast outgoing messages.
 let broadcastMessage = null;
 
+// ------- Defensive parsing of incoming peer messages -------
+// We don't trust anything coming off the wire — a hostile or buggy peer
+// could send malformed JSON, oversized payloads, or wrong types and crash
+// receivers. Everything below is bounds-checked and clamped.
+
+const MAX_NAME_LEN          = 24;       // generous over the 12-char client cap
+const MAX_TEXT_LEN           = 4000;
+const MAX_STROKES_PER_MSG    = 500;
+const MAX_POINTS_PER_STROKE  = 5000;
+const MAX_FIELD_DIM          = 4096;
+const HEX_COLOR_RE           = /^#[0-9a-fA-F]{6}$/;
+
+function toFiniteNumber(v, fallback) {
+  const n = Number(v);
+  return Number.isFinite(n) ? n : fallback;
+}
+function clamp(v, lo, hi) { return Math.max(lo, Math.min(hi, v)); }
+
+function sanitizeStroke(raw) {
+  if (!raw || typeof raw !== 'object') return null;
+  const c = (typeof raw.c === 'string' && HEX_COLOR_RE.test(raw.c)) ? raw.c : '#000000';
+  const s = clamp(toFiniteNumber(raw.s, 4), 1, 32);
+  if (!Array.isArray(raw.p)) return null;
+
+  const points = [];
+  const max = Math.min(raw.p.length, MAX_POINTS_PER_STROKE);
+  for (let i = 0; i < max; i++) {
+    const pt = raw.p[i];
+    if (!Array.isArray(pt) || pt.length < 2) continue;
+    const x = toFiniteNumber(pt[0], NaN);
+    const y = toFiniteNumber(pt[1], NaN);
+    if (Number.isNaN(x) || Number.isNaN(y)) continue;
+    points.push([x, y]);
+  }
+  if (points.length === 0) return null;
+  return { c, s, p: points };
+}
+
+function sanitizeIncomingMessage(raw) {
+  if (!raw || typeof raw !== 'object') return null;
+
+  const name   = typeof raw.name === 'string'
+                   ? (raw.name.slice(0, MAX_NAME_LEN) || 'anon')
+                   : 'anon';
+  const text   = typeof raw.text === 'string'
+                   ? raw.text.slice(0, MAX_TEXT_LEN)
+                   : '';
+  const fieldW = clamp(toFiniteNumber(raw.fieldW, 480), 1, MAX_FIELD_DIM);
+  const fieldH = clamp(toFiniteNumber(raw.fieldH, 90),  1, MAX_FIELD_DIM);
+
+  let drawing = null;
+  if (raw.drawing && typeof raw.drawing === 'object' && Array.isArray(raw.drawing.strokes)) {
+    const w = clamp(toFiniteNumber(raw.drawing.w, fieldW), 1, MAX_FIELD_DIM);
+    const h = clamp(toFiniteNumber(raw.drawing.h, fieldH), 1, MAX_FIELD_DIM);
+    const strokes = raw.drawing.strokes
+      .slice(0, MAX_STROKES_PER_MSG)
+      .map(sanitizeStroke)
+      .filter(Boolean);
+    if (strokes.length > 0) drawing = { strokes, w, h };
+  }
+
+  // Drop messages that have no text AND no drawing — pure noise.
+  if (!text && !drawing) return null;
+
+  return { name, text, drawing, fieldW, fieldH };
+}
+
 (async () => {
   try {
     console.log('[comms] discovering public IP via STUN…');
@@ -567,17 +634,22 @@ let broadcastMessage = null;
     const [sendMsg, onMsg] = room.makeAction('msg');
     broadcastMessage = sendMsg;
 
-    onMsg((data /* , peerId */) => {
-      if (!data || typeof data !== 'object') return;
-      // Render incoming peer message — isMe = false
-      appendMessage(
-        data.name   || 'anon',
-        data.text   || '',
-        data.drawing || null,
-        data.fieldW || 480,
-        data.fieldH || 90,
-        false
-      );
+    // Per-peer rate limiter — drops messages above 10/sec/peer to keep
+    // a hostile or runaway peer from flooding the room.
+    const peerRates = new Map();
+    function rateOk(peerId) {
+      const now  = Date.now();
+      const arr  = (peerRates.get(peerId) || []).filter(t => now - t < 1000);
+      arr.push(now);
+      peerRates.set(peerId, arr);
+      return arr.length <= 10;
+    }
+
+    onMsg((raw, peerId) => {
+      if (!rateOk(peerId)) return;
+      const data = sanitizeIncomingMessage(raw);
+      if (!data) return;
+      appendMessage(data.name, data.text, data.drawing, data.fieldW, data.fieldH, false);
     });
 
     console.log('[comms] joined room — waiting for peers');
