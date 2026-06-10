@@ -1,3 +1,5 @@
+<img src="favicon.svg" alt="comms logo — a swoosh circling a speech bubble" width="88">
+
 # comms-pictochat
 
 A peer-to-peer drawing chat for everyone on the same WiFi.
