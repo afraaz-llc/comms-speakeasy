@@ -61,24 +61,22 @@ body {
 /* ---------- mobile / small viewport ---------- */
 @media (max-width: 600px) {
   .comms-app {
-    /* Pin the app to the visible viewport. iOS scrolls the visual viewport
-       independently when the keyboard opens; --app-top mirrors
-       window.visualViewport.offsetTop so the fixed app tracks the visible
-       area instead of getting pushed off-screen. */
+    /* Pin to the top of the viewport; --app-h (window.visualViewport.height,
+       set in JS) shrinks the app so the compose bar sits above the keyboard.
+       We deliberately pin top:0 rather than chasing visualViewport.offsetTop —
+       moving a position:fixed element on every scroll event fought iOS's own
+       scroll-into-view and made the page jerk. Height-only is stable. */
     position: fixed;
-    top: var(--app-top, 0);
+    top: 0;
     left: 0;
     width: 100%;
-    /* --app-h is window.visualViewport.height — shrinks when the keyboard
-       slides up, so the message log absorbs the change via flex: 1. */
     height: var(--app-h, 100dvh);
     margin: 0;
     padding: 8px;
     border-radius: 0;
     border: none;
   }
-  /* Belt-and-suspenders against iOS auto-zoom on input focus
-     (maximum-scale=1 in the viewport meta is the primary defense). */
+  /* 16px stops iOS from auto-zooming into inputs on focus. */
   #messageInput,
   .name-label input {
     font-size: 16px;

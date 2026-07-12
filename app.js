@@ -691,29 +691,23 @@ function sanitizeIncomingMessage(raw) {
 })();
 
 // ------- Visual viewport tracking (mobile keyboard handling) -------
-// iOS Safari doesn't reliably update 100dvh when the on-screen keyboard
-// opens, so we track window.visualViewport.height directly and expose it
-// as --app-h. The mobile @media rule uses this var for the app shell's
-// height — when the keyboard slides up, the app shrinks to fit immediately.
+// iOS overlays the on-screen keyboard without shrinking 100dvh, so we track
+// window.visualViewport.height and expose it as --app-h; the mobile @media
+// rule uses it for the app height, so the app shrinks to sit above the
+// keyboard.
+//
+// We only track HEIGHT — deliberately not visualViewport.offsetTop. The old
+// code moved the position:fixed app to match offsetTop on every scroll event,
+// which fought iOS's own scroll-into-view and made the page jerk violently.
+// Pinning top:0 and tracking height only is stable. The `resizes-content`
+// viewport property does the same thing declaratively where supported.
 function updateAppHeight() {
-  const root = document.documentElement;
-  if (window.visualViewport) {
-    const vv = window.visualViewport;
-    root.style.setProperty('--app-h',   vv.height    + 'px');
-    // The visual viewport can be scrolled by iOS independently of the
-    // document (e.g. when the keyboard opens it shifts the visible area).
-    // We mirror its offsetTop so position:fixed elements track it instead
-    // of staying anchored to the now-off-screen layout viewport.
-    root.style.setProperty('--app-top', vv.offsetTop + 'px');
-  } else {
-    root.style.setProperty('--app-h',   window.innerHeight + 'px');
-    root.style.setProperty('--app-top', '0px');
-  }
+  const h = (window.visualViewport && window.visualViewport.height) || window.innerHeight;
+  document.documentElement.style.setProperty('--app-h', h + 'px');
 }
 updateAppHeight();
 if (window.visualViewport) {
   window.visualViewport.addEventListener('resize', updateAppHeight);
-  window.visualViewport.addEventListener('scroll', updateAppHeight);
 }
 window.addEventListener('resize', updateAppHeight);
 window.addEventListener('orientationchange', updateAppHeight);
