@@ -5,10 +5,8 @@
   <title>comms</title>
   <!-- maximum-scale=1 + user-scalable=no lock zoom at 1:1. REQUIRED on iOS:
        without it Safari loads pre-zoomed and auto-zooms+scrolls on input focus,
-       which makes the compose box jerk and the page fly upward. Do not remove.
-       interactive-widget=resizes-content lets supporting browsers resize the
-       layout for the on-screen keyboard. -->
-  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover, interactive-widget=resizes-content">
+       which makes the compose box jerk and the page fly upward. Do not remove. -->
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
   <meta name="description" content="peer-to-peer pictochat for everyone on your WiFi. no accounts, no servers, no tracking.">
   <link rel="icon" type="image/svg+xml" href="favicon.svg">
   <link rel="apple-touch-icon" href="apple-touch-icon.png">
@@ -28,7 +26,7 @@
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
   <meta http-equiv="Pragma" content="no-cache">
   <meta http-equiv="Expires" content="0">
-  <link rel="stylesheet" href="styles.css?v=30">
+  <link rel="stylesheet" href="styles.css?v=31">
 </head>
 <body>
   <main class="comms-app">
@@ -74,7 +72,7 @@
 
   </main>
 
-  <script type="module" src="app.js?v=27"></script>
+  <script type="module" src="app.js?v=28"></script>
   <!--
     app.js is an ES module. Trystero is vendored locally in ./vendor, so
     the app loads with no runtime CDN dependency. Peer discovery still needs

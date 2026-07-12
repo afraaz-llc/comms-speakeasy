@@ -61,13 +61,13 @@ body {
 /* ---------- mobile / small viewport ---------- */
 @media (max-width: 600px) {
   .comms-app {
-    /* Pin to the top of the viewport; --app-h (window.visualViewport.height,
-       set in JS) shrinks the app so the compose bar sits above the keyboard.
-       We deliberately pin top:0 rather than chasing visualViewport.offsetTop —
-       moving a position:fixed element on every scroll event fought iOS's own
-       scroll-into-view and made the page jerk. Height-only is stable. */
+    /* Pin the app to the visible region. --app-h (visualViewport.height) sizes
+       it to the space above the keyboard, and --app-top (visualViewport.offsetTop)
+       matches iOS's pan when it scrolls the input into view — without that offset
+       the app's bottom floats above the keyboard, leaving a gap. Safe now that
+       zoom is locked (the old jerk was from zoom animation, not this). */
     position: fixed;
-    top: 0;
+    top: var(--app-top, 0);
     left: 0;
     width: 100%;
     height: var(--app-h, 100dvh);

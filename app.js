@@ -692,22 +692,28 @@ function sanitizeIncomingMessage(raw) {
 
 // ------- Visual viewport tracking (mobile keyboard handling) -------
 // iOS overlays the on-screen keyboard without shrinking 100dvh, so we track
-// window.visualViewport.height and expose it as --app-h; the mobile @media
-// rule uses it for the app height, so the app shrinks to sit above the
-// keyboard.
-//
-// We only track HEIGHT — deliberately not visualViewport.offsetTop. The old
-// code moved the position:fixed app to match offsetTop on every scroll event,
-// which fought iOS's own scroll-into-view and made the page jerk violently.
-// Pinning top:0 and tracking height only is stable. The `resizes-content`
-// viewport property does the same thing declaratively where supported.
+// the visual viewport directly:
+//   --app-h   = visualViewport.height   → app height = space above keyboard
+//   --app-top = visualViewport.offsetTop → matches iOS's pan when it scrolls
+//               the focused input into view, so the app's bottom sits flush
+//               against the keyboard with no gap.
+// This offset tracking is safe now that zoom is locked (maximum-scale=1) — the
+// old "jerk" came from iOS zoom animation on focus, not from this.
 function updateAppHeight() {
-  const h = (window.visualViewport && window.visualViewport.height) || window.innerHeight;
-  document.documentElement.style.setProperty('--app-h', h + 'px');
+  const root = document.documentElement;
+  const vv = window.visualViewport;
+  if (vv) {
+    root.style.setProperty('--app-h',   vv.height    + 'px');
+    root.style.setProperty('--app-top', vv.offsetTop + 'px');
+  } else {
+    root.style.setProperty('--app-h',   window.innerHeight + 'px');
+    root.style.setProperty('--app-top', '0px');
+  }
 }
 updateAppHeight();
 if (window.visualViewport) {
   window.visualViewport.addEventListener('resize', updateAppHeight);
+  window.visualViewport.addEventListener('scroll', updateAppHeight);
 }
 window.addEventListener('resize', updateAppHeight);
 window.addEventListener('orientationchange', updateAppHeight);
