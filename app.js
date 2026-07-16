@@ -487,10 +487,16 @@ sizeCanvas();
 
 // ------- Networking: discover public IP, hash to room key, join room -------
 //
-// "Same WiFi → same chatroom" works because everyone on a NAT shares the same
-// public egress IP. Each peer hashes that IP into a room key, joins via
-// Trystero (which uses public BitTorrent trackers as a free signaling layer),
-// and then chats peer-to-peer over WebRTC DataChannels.
+// "Same WiFi → same chatroom" works because everyone behind a NAT shares the
+// same public egress IP. Each peer hashes that IP into a room key, joins via
+// Trystero (which uses public Nostr relays as a free signaling layer), and
+// then chats peer-to-peer over WebRTC DataChannels.
+//
+// Caveat, stated honestly: this keys on the public egress IP, NOT the WiFi.
+// VPN / CGNAT / campus NAT all break the "same WiFi" framing, and nothing
+// verifies that a joining peer is actually on your network — anyone who knows
+// your public IP can derive this room key and join from anywhere. See
+// README → "Privacy — what it does and doesn't protect."
 
 const ROOM_SALT = 'comms-speakeasy-v1';
 const STUN_URL  = 'stun:stun.l.google.com:19302';
@@ -551,9 +557,11 @@ function roomKeyInput(ip) {
   return ip.includes(':') ? 'v6:' + ipv6Prefix64(ip) : ip;
 }
 
-// SHA-256(keyInput + salt) → 32 hex chars. The salt isn't a real privacy
-// boundary (anyone with the source can hash known IPs), but it does prevent
-// passive observation of "this room hash = this exact public IP" without effort.
+// SHA-256(keyInput + salt) → 32 hex chars. The salt is NOT a privacy boundary:
+// it's a public constant in this source, and mapping every routable IPv4
+// address to its room key takes only ~2 core-hours, once. Treat the room key
+// as equivalent to publishing the IP. The salt is a domain separator, not a
+// defense.
 async function hashRoomKey(keyInput) {
   const buf = new TextEncoder().encode(keyInput + '.' + ROOM_SALT);
   const digest = await crypto.subtle.digest('SHA-256', buf);

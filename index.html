@@ -7,11 +7,11 @@
        without it Safari loads pre-zoomed and auto-zooms+scrolls on input focus,
        which makes the compose box jerk and the page fly upward. Do not remove. -->
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
-  <meta name="description" content="a speakeasy for your WiFi — peer-to-peer drawing chat with whoever's nearby. no accounts, no servers, no tracking.">
+  <meta name="description" content="a speakeasy for your WiFi — peer-to-peer drawing chat with whoever's on it. no accounts, no message history; your messages go browser to browser, never through a server.">
   <link rel="icon" type="image/svg+xml" href="favicon.svg">
   <link rel="apple-touch-icon" href="apple-touch-icon.png">
   <meta property="og:title" content="comms">
-  <meta property="og:description" content="a speakeasy for your WiFi — peer-to-peer drawing chat with whoever's nearby. no accounts, no servers, no tracking.">
+  <meta property="og:description" content="a speakeasy for your WiFi — peer-to-peer drawing chat with whoever's on it. no accounts, no message history; your messages go browser to browser, never through a server.">
   <meta property="og:image" content="https://speakeasy.comms.fish/og-image.png">
   <meta property="og:url" content="https://speakeasy.comms.fish/">
   <meta property="og:type" content="website">
@@ -19,8 +19,9 @@
   <!-- Content-Security-Policy. script-src 'self' is the high-value part: all
        code is now same-origin (Trystero is vendored), so injected/external
        scripts are blocked. connect-src stays permissive on wss:/stun: so the
-       rotating Nostr relay set + WebRTC keep working without enumerating them;
-       it still blocks http(s) exfiltration. style 'unsafe-inline' is required
+       Nostr relays + WebRTC keep working without enumerating them (the relay
+       set is fixed, not rotating); it still blocks http(s) exfiltration.
+       style 'unsafe-inline' is required
        for the inline styles the app sets via JS. -->
   <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; connect-src 'self' wss: stun: turn: turns:; base-uri 'self'; form-action 'none'">
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
